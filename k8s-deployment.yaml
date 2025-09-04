@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slo-app
+  template:
+    metadata:
+      labels:
+        app: slo-app
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '5000'
+    spec:
+      containers:
+      - name: slo-app
+        image: slo-monitoring-app:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slo-app-service
+spec:
+  selector:
+    app: slo-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000

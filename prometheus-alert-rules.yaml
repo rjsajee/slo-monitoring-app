@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: slo-alert-rules
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: slo.rules
+    rules:
+    - alert: HighErrorRate
+      expr: |
+        sum(rate(http_requests_total{status_code="500"}[5m]))
+        /
+        sum(rate(http_requests_total[5m]))
+        > 0.1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected (>10% in 5 minutes)"
+        description: "More than 10% of requests are failing with 500 errors."
