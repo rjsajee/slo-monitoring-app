@@ -20,7 +20,7 @@ def homepage():
         return 'Internal Server Error', 500
 
     REQUEST_COUNT.labels(status_code='200').inc()
-    return f"Hello from SLO Monitoring App! Delay: {round(delay, 2)}s"
+    return f"Hello from SLO Monitoring App!! Delay: {round(delay, 2)}s"
 
 @app.route('/metrics')
 def metrics():

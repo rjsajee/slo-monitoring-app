@@ -8,15 +8,30 @@ spec:
   groups:
   - name: slo.rules
     rules:
-    - alert: HighErrorRate
+    - alert: ErrorBudgetBurn
       expr: |
-        sum(rate(http_requests_total{status_code="500"}[5m]))
-        /
-        sum(rate(http_requests_total[5m]))
-        > 0.1
+        (1 - (
+          sum(rate(http_requests_total{status_code=~"2.."}[5m]))
+          /
+          sum(rate(http_requests_total[5m]))
+        )) > 0.001
       for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Error Budget Burn Alert"
+        description: "More than 0.1% of requests failed in the last 5 minutes, which exceeds the SLO threshold."
+
+    - alert: HighSLOBurnRate
+      expr: |
+        (1 - (
+          sum(rate(http_requests_total{status_code=~"2.."}[1m]))
+          /
+          sum(rate(http_requests_total[1m]))
+        )) > 0.001
+      for: 1m
       labels:
         severity: warning
       annotations:
-        summary: "High error rate detected (>10% in 5 minutes)"
-        description: "More than 10% of requests are failing with 500 errors."
+        summary: "High SLO Burn Rate"
+        description: "Error rate is consuming the SLO budget at an accelerated pace. Investigate immediately."
