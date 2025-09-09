@@ -1,0 +1,31 @@
+name: SLO-Aware Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  slo-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install Requests Package
+      run: pip install requests
+
+    - name: Check SLO Compliance
+      run: python check_error_budget.py
+
+  deploy:
+    needs: slo-check
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+    - name: Proceed with Deployment
+      run: echo " SLO met. Proceeding with deployment..."
