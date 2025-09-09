@@ -1,35 +1,25 @@
-import requests
 import sys
+import random
+import time
 
-PROMETHEUS_URL = "http://localhost:9090"
+# Simulated error budget check using mocked availability metric
 
-PROMQL_QUERY = 'sum(rate(http_requests_total{status_code=~"2.."}[5m])) / sum(rate(http_requests_total[5m]))'
+# Configuration
+SLO_THRESHOLD = 0.999  # e.g. 99.9% availability required
 
-SLO_THRESHOLD = 0.999  # 99.9%
+# Simulate a dynamic availability result (mocked for CI/CD demo)
+# You can hard-code for a specific result, or randomise to simulate both outcomes
+mock_availability = random.choice([0.998, 0.9991, 0.9975, 1.0])  # Random example values
 
-def get_availability():
-    try:
-        response = requests.get(f'{PROMETHEUS_URL}/api/v1/query', params={'query': PROMQL_QUERY})
-        result = response.json()
-        
-        if not result['data']['result']:
-            print("No data returned. This usually means Prometheus hasn't scraped metrics or no requests occurred in the last 5 minutes.")
-            print("Make sure your Flask app is running and being hit by traffic (try running load-test.js).")
-            sys.exit(1)
+# Print the simulated availability
+print(" Simulating availability check...")
+time.sleep(1)
+print(f"ℹ  Simulated availability: {mock_availability * 100:.2f}%")
 
-        value = float(result['data']['result'][0]['value'][1])
-        return value
-    except Exception as e:
-        print("Failed to parse availability metric:", str(e))
-        sys.exit(1)
-
-availability = get_availability()
-
-print(f"Current availability: {availability * 100:.2f}%")
-
-if availability < SLO_THRESHOLD:
-    print("SLO violated. Deployment halted.")
-    sys.exit(1)
+# Compare to SLO threshold
+if mock_availability < SLO_THRESHOLD:
+    print(" SLO violated. Deployment should be halted.")
+    sys.exit(1)  # Fail the pipeline
 else:
-    print("SLO met. Proceeding with deployment.")
-    sys.exit(0)
+    print(" SLO met. Proceeding with deployment.")
+    sys.exit(0)  # Allow deployment
